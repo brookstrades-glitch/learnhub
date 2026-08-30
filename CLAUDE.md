@@ -2,7 +2,7 @@
 
 # LearnHub — project rules
 
-Read `README.md` for the layout and `SETUP.md` for the environment. This file is what you must follow when changing code.
+Read `README.md` for the layout and `SETUP.md` for the environment. `setup.sh` bootstraps a fresh machine; `npm run deploy` (scripts/deploy.sh) does first-time Vercel setup. If the user is stuck on setup, run those rather than improvising. This file is what you must follow when changing code.
 
 ## Stack (do not swap any of these)
 Next.js 16 App Router · TypeScript · Tailwind v4 · shadcn/ui (base-nova, Base UI primitives, not Radix) · Supabase Auth · Postgres via Drizzle ORM · Vercel.
