@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LearnHub
 
-## Getting Started
+A simple online learning platform. Instructors create courses made of modules and lessons (Markdown + optional video); students enroll, work through lessons, and track progress.
 
-First, run the development server:
+**New here? Read [SETUP.md](./SETUP.md) — it walks through everything from a blank Chromebook.**
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Stack
+
+- Next.js 16 (App Router) + TypeScript + Tailwind + shadcn/ui
+- Supabase Auth (email/password + Google) and Supabase Postgres
+- Drizzle ORM
+- Deployed on Vercel (push to `main` = production)
+
+## Roles
+
+| Role | Can do |
+|---|---|
+| student | Browse, enroll, take lessons, track progress |
+| instructor | Everything above + create/edit/publish their own courses |
+| admin | Everything above + edit any course, change user roles |
+
+New sign-ups are students. The email in `ADMIN_EMAIL` becomes admin on first login. Admins promote others from `/admin`.
+
+## Commands
+
+```
+npm run dev          # local dev server → http://localhost:3000
+npm run build        # production build (Vercel runs this)
+npm run typecheck    # generate route types + tsc
+npm run lint
+
+npm run db:push      # push schema straight to the database (fastest for solo dev)
+npm run db:generate  # write a SQL migration from schema changes
+npm run db:migrate   # apply migrations
+npm run db:seed      # add a sample course (needs the admin account to exist)
+npm run db:studio    # browse the database in a GUI
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Environment variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Copy `.env.example` to `.env.local` and fill in:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Var | Where to find it |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API → Project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Project Settings → API → anon public |
+| `DATABASE_URL` | Supabase → Project Settings → Database → Connection string → **Transaction** (port 6543) |
+| `ADMIN_EMAIL` | Your own email |
 
-## Learn More
+Same four go into Vercel → Project → Settings → Environment Variables.
 
-To learn more about Next.js, take a look at the following resources:
+## Project layout
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+src/
+  app/                 routes (App Router)
+    (public)           /, /courses, /courses/[slug], /login, /signup
+    dashboard/         student home
+    learn/[slug]/      lesson viewer
+    instructor/        course builder
+    admin/             user + role management
+    auth/callback/     Supabase OAuth / email-confirm return URL
+  actions/             server actions (all writes go through here)
+  components/          UI (components/ui = shadcn)
+  db/                  schema.ts, client, seed
+  lib/
+    auth.ts            getCurrentProfile / requireProfile / requireRole
+    queries.ts         read helpers
+    supabase/          browser / server / proxy clients
+  proxy.ts             session refresh + route protection (Next 16 name for middleware)
+drizzle/               SQL migrations
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Security model
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The app talks to Postgres with the direct connection string (bypasses RLS). All authorization is enforced in `src/actions/*` and page loaders via `requireRole` / ownership checks. Never expose `DATABASE_URL` to the browser — only `NEXT_PUBLIC_*` vars are public.
