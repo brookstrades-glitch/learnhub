@@ -43,11 +43,11 @@ For `gh auth login` choose: **GitHub.com → HTTPS → Yes (authenticate git) �
 
 ## Part 2 — Get the code
 
-Ask whoever set this up to add your GitHub username as a collaborator on the repo, then:
+You are already a collaborator on the repo. Run:
 
 ```
 cd ~
-gh repo clone <OWNER>/learnhub
+gh repo clone brookstrades-glitch/learnhub
 cd learnhub
 npm install
 ```

@@ -2,7 +2,15 @@
 
 A simple online learning platform. Instructors create courses made of modules and lessons (Markdown + optional video); students enroll, work through lessons, and track progress.
 
-**New here? Read [SETUP.md](./SETUP.md) — it walks through everything from a blank Chromebook.**
+## Setup on a new laptop (one command)
+
+Paste this into the Linux terminal. Log in to GitHub when the browser opens (you must be a collaborator on the repo). It installs everything, asks for your Supabase keys, creates the tables, and offers to deploy to Vercel.
+
+```
+sudo apt-get update -qq && sudo apt-get install -y gh git && gh auth login -h github.com -p https -w && gh repo clone brookstrades-glitch/learnhub ~/learnhub && bash ~/learnhub/setup.sh
+```
+
+Manual walkthrough in [SETUP.md](./SETUP.md).
 
 ## Stack
 
