@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # LearnHub one-shot setup for Debian/Ubuntu (Chromebook Linux).
-# Run:  curl -fsSL https://raw.githubusercontent.com/brookstrades-glitch/learnhub/main/setup.sh -o setup.sh && bash setup.sh
+# Run (repo is private, so log in and clone first):
+#   sudo apt-get update -qq && sudo apt-get install -y gh git && gh auth login -h github.com -p https -w && gh repo clone brookstrades-glitch/learnhub ~/learnhub && bash ~/learnhub/setup.sh
 set -e
 
 REPO="brookstrades-glitch/learnhub"
