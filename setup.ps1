@@ -17,7 +17,7 @@ function Refresh-Path {
 function Need($cmd, $wingetId) {
   if (Has $cmd) { return }
   Write-Host "    installing $wingetId"
-  winget install -e --id $wingetId --silent --accept-source-agreements --accept-package-agreements | Out-Null
+  winget install -e --id $wingetId --silent --source winget --accept-source-agreements --accept-package-agreements | Out-Null
   Refresh-Path
   if (-not (Has $cmd)) { throw "$cmd still not found after installing $wingetId. Close PowerShell, open a new one, and re-run setup.ps1." }
 }

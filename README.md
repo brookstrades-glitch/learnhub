@@ -7,7 +7,7 @@ A simple online learning platform. Instructors create courses made of modules an
 Open **PowerShell** (Start menu, type PowerShell, Enter; not as admin) and paste this. Log in to GitHub when the browser opens (you must be a collaborator on the repo). It installs everything (Git, Node, GitHub CLI, Vercel CLI, VS Code, Claude Code), sets Claude up for vibe coding, asks for your Supabase keys, creates the tables, and offers to deploy.
 
 ```
-winget install -e --id Git.Git --accept-source-agreements --accept-package-agreements; winget install -e --id GitHub.cli --accept-source-agreements --accept-package-agreements; $env:Path=[Environment]::GetEnvironmentVariable('Path','Machine')+';'+[Environment]::GetEnvironmentVariable('Path','User'); gh auth login -h github.com -p https -w; gh repo clone brookstrades-glitch/learnhub $HOME\learnhub; powershell -ExecutionPolicy Bypass -File $HOME\learnhub\setup.ps1
+winget install -e --id Git.Git --source winget --accept-source-agreements --accept-package-agreements; winget install -e --id GitHub.cli --source winget --accept-source-agreements --accept-package-agreements; $env:Path=[Environment]::GetEnvironmentVariable('Path','Machine')+';'+[Environment]::GetEnvironmentVariable('Path','User'); gh auth login -h github.com -p https -w; gh repo clone brookstrades-glitch/learnhub $HOME\learnhub; powershell -ExecutionPolicy Bypass -File $HOME\learnhub\setup.ps1
 ```
 
 Then read [VIBE-CODING.md](./VIBE-CODING.md). Details and troubleshooting in [SETUP.md](./SETUP.md). Linux/Chromebook: `bash setup.sh`.
