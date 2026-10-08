@@ -135,6 +135,15 @@ Paste each value below (right-click pastes in PowerShell).
   Write-Host '    .env.local saved'
 
   Say '9/9  Creating database tables'
+  while ($true) {
+    node scripts/db-check.mjs
+    if ($LASTEXITCODE -eq 0) { break }
+    $v = (Read-Host 'Paste a corrected connection string, or press Enter to stop').Trim()
+    if (-not $v) { throw 'Could not connect to the database (see the message above).' }
+    if ($v -notmatch $fields[2].ok) { Warn 'That does not look like a :6543/postgres connection string.'; continue }
+    $vals['DATABASE_URL'] = Encode-DbPassword $v
+    Write-NoBom $envFile (($fields | ForEach-Object { "$($_.k)=$($vals[$_.k])" }) -join "`n")
+  }
   Run @('npm', 'run', 'db:push')
 }
 catch {
