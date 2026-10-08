@@ -91,24 +91,36 @@ function lhcode { code '$Dir' }
 
   Say '8/9  Supabase keys'
   $envFile = Join-Path $Dir '.env.local'
-  if (-not (Test-Path $envFile)) {
+  $vals = @{}
+  if (Test-Path $envFile) {
+    foreach ($line in Get-Content $envFile) { if ($line -match '^\s*([A-Z_]+)=(.*)$') { $vals[$Matches[1]] = $Matches[2].Trim() } }
+  }
+  $fields = @(
+    @{ k = 'NEXT_PUBLIC_SUPABASE_URL'; q = 'Project URL (Project Settings > API, looks like https://xxxx.supabase.co)'; ok = '^https://[a-z0-9]+\.supabase\.co/?$' },
+    @{ k = 'NEXT_PUBLIC_SUPABASE_ANON_KEY'; q = 'Publishable / anon public key (starts with sb_publishable_ or eyJ)'; ok = '^(sb_publishable_|eyJ)\S+$' },
+    @{ k = 'DATABASE_URL'; q = 'Connection string (Connect > Transaction pooler, ends in :6543/postgres, password filled in)'; ok = '^postgres(ql)?://[^\s\[\]]+:6543/postgres$' },
+    @{ k = 'ADMIN_EMAIL'; q = 'Your email (this account becomes admin)'; ok = '^\S+@\S+\.\S+$' }
+  )
+  $bad = @($fields | Where-Object { -not ($vals[$_.k] -match $_.ok) })
+  if ($bad.Count -gt 0) {
     Write-Host @'
 
 Open https://supabase.com/dashboard in your browser.
-  - New project -> any name -> set a database password (save it in your password manager) -> wait ~2 min
-  - Project Settings (gear) -> API        : copy "Project URL" and "anon public" key
-  - Connect (top bar) -> ORMs or "Transaction pooler": copy the string ending in :6543/postgres
-      and replace [YOUR-PASSWORD] with your password
+  - No project yet? New project -> any name -> set a database password (save it in your password manager) -> wait ~2 min
+  - Never use the "secret" or "service_role" key here.
 
 Paste each value below (right-click pastes in PowerShell).
 '@
-    $url = Read-Host 'Project URL (https://xxxx.supabase.co)'
-    $anon = Read-Host 'anon public key'
-    $sec = Read-Host 'Connection string (hidden as you paste)' -AsSecureString
-    $db = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($sec))
-    $mail = Read-Host 'Your email (this account becomes admin)'
-    Write-NoBom $envFile "NEXT_PUBLIC_SUPABASE_URL=$url`nNEXT_PUBLIC_SUPABASE_ANON_KEY=$anon`nDATABASE_URL=$db`nADMIN_EMAIL=$mail`n"
+    foreach ($f in $bad) {
+      do {
+        $v = (Read-Host $f.q).Trim()
+        if ($v -notmatch $f.ok) { Warn 'That does not look right. Check the hint in brackets and paste it again.' }
+      } until ($v -match $f.ok)
+      $vals[$f.k] = $v
+    }
+    Write-NoBom $envFile (($fields | ForEach-Object { "$($_.k)=$($vals[$_.k])" }) -join "`n")
   }
+  else { Write-Host '    .env.local looks good' }
 
   Say '9/9  Creating database tables'
   Run @('npm', 'run', 'db:push')

@@ -13,7 +13,7 @@ What happens, in order:
 4. A browser opens to log in to **Vercel**. Approve.
 5. It asks for three Supabase values. Before answering, in another tab:
    - https://supabase.com/dashboard, **New project**, any name, set a database password and **save it in your password manager**. Wait about 2 minutes.
-   - **Project Settings > API**: copy **Project URL** and the **anon public** key.
+   - **Project Settings > API**: copy **Project URL** and the **Publishable** key (starts with `sb_publishable_`; older projects call it **anon public**). Never the secret key.
    - **Connect** (top bar): copy the **Transaction pooler** string (ends in `:6543/postgres`) and replace `[YOUR-PASSWORD]` with your password.
 6. It creates the database tables and asks whether to deploy now. Say **y**.
 7. The deploy prints your live URL and one last Supabase step: **Authentication > URL Configuration**, set **Site URL** to the live URL and add `<live URL>/auth/callback` under **Redirect URLs**. Do it now, or login on the live site will send people to localhost.
