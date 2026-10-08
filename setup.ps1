@@ -25,6 +25,14 @@ function Run($what) {
   & $what[0] $what[1..($what.Length - 1)]
   if ($LASTEXITCODE -ne 0) { throw "Failed: $($what -join ' ')" }
 }
+function Encode-DbPassword($u) {
+  if ($u -match '^(postgres(?:ql)?://[^:/]+:)(.*)@([^@]+)$') {
+    $head, $pw, $tail = $Matches[1], $Matches[2], $Matches[3]
+    if ($pw -notmatch '%[0-9A-Fa-f]{2}') { $pw = [Uri]::EscapeDataString($pw) }
+    return $head + $pw + '@' + $tail
+  }
+  $u
+}
 function Write-NoBom($path, $text) { [IO.File]::WriteAllText($path, $text, (New-Object Text.UTF8Encoding $false)) }
 
 try {
@@ -118,9 +126,13 @@ Paste each value below (right-click pastes in PowerShell).
       } until ($v -match $f.ok)
       $vals[$f.k] = $v
     }
+  }
+  $encoded = Encode-DbPassword $vals['DATABASE_URL']
+  if ($bad.Count -gt 0 -or $encoded -ne $vals['DATABASE_URL']) {
+    $vals['DATABASE_URL'] = $encoded
     Write-NoBom $envFile (($fields | ForEach-Object { "$($_.k)=$($vals[$_.k])" }) -join "`n")
   }
-  else { Write-Host '    .env.local looks good' }
+  Write-Host '    .env.local saved'
 
   Say '9/9  Creating database tables'
   Run @('npm', 'run', 'db:push')
