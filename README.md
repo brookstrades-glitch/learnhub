@@ -2,15 +2,15 @@
 
 A simple online learning platform. Instructors create courses made of modules and lessons (Markdown + optional video); students enroll, work through lessons, and track progress.
 
-## Setup on a new laptop (one command)
+## Setup on a new Windows computer (one paste)
 
-Paste this into the Linux terminal. Log in to GitHub when the browser opens (you must be a collaborator on the repo). It installs everything, asks for your Supabase keys, creates the tables, and offers to deploy to Vercel.
+Open **PowerShell** (Start menu, type PowerShell, Enter; not as admin) and paste this. Log in to GitHub when the browser opens (you must be a collaborator on the repo). It installs everything (Git, Node, GitHub CLI, Vercel CLI, VS Code, Claude Code), sets Claude up for vibe coding, asks for your Supabase keys, creates the tables, and offers to deploy.
 
 ```
-sudo apt-get update -qq && sudo apt-get install -y gh git && gh auth login -h github.com -p https -w && gh repo clone brookstrades-glitch/learnhub ~/learnhub && bash ~/learnhub/setup.sh
+winget install -e --id Git.Git --accept-source-agreements --accept-package-agreements; winget install -e --id GitHub.cli --accept-source-agreements --accept-package-agreements; $env:Path=[Environment]::GetEnvironmentVariable('Path','Machine')+';'+[Environment]::GetEnvironmentVariable('Path','User'); gh auth login -h github.com -p https -w; gh repo clone brookstrades-glitch/learnhub $HOME\learnhub; powershell -ExecutionPolicy Bypass -File $HOME\learnhub\setup.ps1
 ```
 
-Manual walkthrough in [SETUP.md](./SETUP.md).
+Then read [VIBE-CODING.md](./VIBE-CODING.md). Details and troubleshooting in [SETUP.md](./SETUP.md). Linux/Chromebook: `bash setup.sh`.
 
 ## Stack
 
@@ -32,12 +32,13 @@ New sign-ups are students. The email in `ADMIN_EMAIL` becomes admin on first log
 ## Commands
 
 ```
-npm run dev          # local dev server → http://localhost:3000
+npm run dev          # local dev server (http://localhost:3000)
 npm run build        # production build (Vercel runs this)
 npm run typecheck    # generate route types + tsc
 npm run lint
 
 npm run db:push      # push schema straight to the database (fastest for solo dev)
+npm run deploy       # first-time Vercel setup (scripts/deploy.mjs)
 npm run db:generate  # write a SQL migration from schema changes
 npm run db:migrate   # apply migrations
 npm run db:seed      # add a sample course (needs the admin account to exist)
@@ -81,4 +82,4 @@ drizzle/               SQL migrations
 
 ## Security model
 
-The app talks to Postgres with the direct connection string (bypasses RLS). All authorization is enforced in `src/actions/*` and page loaders via `requireRole` / ownership checks. Never expose `DATABASE_URL` to the browser — only `NEXT_PUBLIC_*` vars are public.
+The app talks to Postgres with the direct connection string (bypasses RLS). All authorization is enforced in `src/actions/*` and page loaders via `requireRole` / ownership checks. Never expose `DATABASE_URL` to the browser, only `NEXT_PUBLIC_*` vars are public.

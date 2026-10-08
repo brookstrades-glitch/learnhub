@@ -1,165 +1,56 @@
-# Setup — from a blank Chromebook to a live site
+# Setup: from a new Windows computer to a live site
 
-You already have GitHub, Supabase, and Vercel accounts. Everything below happens in the **Linux terminal** on your Chromebook (Settings → Advanced → Developers → Linux, then open "Terminal").
+You need four accounts first: **GitHub** (and access to this repo), **Vercel** (sign up with GitHub), **Supabase**, and a **Claude** subscription (Pro or Max) for Claude Code.
 
-Commands are shown in blocks like this. Type them one at a time and press Enter:
+## 1. Run the setup (about 15 minutes)
 
-```
-echo hello
-```
+Open **PowerShell** (Start menu, type PowerShell, press Enter; do not "Run as administrator") and paste the one-liner from [README.md](./README.md). Right-click pastes in PowerShell.
 
----
+What happens, in order:
+1. Windows may ask "Do you want to allow this app to make changes?" a few times. Click **Yes**; that is the installers.
+2. A browser opens to log in to **GitHub**. Copy the 8-character code PowerShell shows, paste it in the browser, approve.
+3. The script installs Node.js, VS Code, the Vercel CLI and Claude Code, and asks your name and GitHub email.
+4. A browser opens to log in to **Vercel**. Approve.
+5. It asks for three Supabase values. Before answering, in another tab:
+   - https://supabase.com/dashboard, **New project**, any name, set a database password and **save it in your password manager**. Wait about 2 minutes.
+   - **Project Settings > API**: copy **Project URL** and the **anon public** key.
+   - **Connect** (top bar): copy the **Transaction pooler** string (ends in `:6543/postgres`) and replace `[YOUR-PASSWORD]` with your password.
+6. It creates the database tables and asks whether to deploy now. Say **y**.
+7. The deploy prints your live URL and one last Supabase step: **Authentication > URL Configuration**, set **Site URL** to the live URL and add `<live URL>/auth/callback` under **Redirect URLs**. Do it now, or login on the live site will send people to localhost.
 
-## Part 1 — Install the tools (once, ~5 min)
+If the script stops with an error, fix what it says and run it again: `powershell -ExecutionPolicy Bypass -File $HOME\learnhub\setup.ps1`. Finished steps are skipped.
 
-```
-sudo apt update
-sudo apt install -y git curl
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-source ~/.bashrc
-nvm install 22
-node -v
-```
+## 2. First Claude session
 
-You should see `v22.x.x`. Then tell git who you are (use the same email as your GitHub account):
-
-```
-git config --global user.name "Your Name"
-git config --global user.email "you@example.com"
-```
-
-Install the GitHub and Vercel command-line tools and log into both (each opens a browser page — follow the prompts):
+Close PowerShell, open a new one, then:
 
 ```
-sudo apt install -y gh
-gh auth login
-npm install -g vercel
-vercel login
+lh
 ```
 
-For `gh auth login` choose: **GitHub.com → HTTPS → Yes (authenticate git) → Login with a web browser**.
+The first time, Claude asks you to log in with your Claude account in the browser. Then type `/start`. From here on, follow [VIBE-CODING.md](./VIBE-CODING.md).
 
----
+In the site, **Sign up** with the email you gave as admin; that account becomes admin automatically. To add a sample course, ask Claude: "seed the sample course".
 
-## Part 2 — Get the code
+## What setup installed for Claude
 
-You are already a collaborator on the repo. Run:
-
-```
-cd ~
-gh repo clone brookstrades-glitch/learnhub
-cd learnhub
-npm install
-```
-
-(Or if the repo was transferred to your account, use your own username as OWNER.)
-
----
-
-## Part 3 — Create the database (Supabase, ~5 min)
-
-1. Go to https://supabase.com/dashboard → **New project**. Pick any name, set a database password **and save it somewhere** — you need it in a minute.
-2. Wait for the project to finish provisioning (~2 min).
-3. Left sidebar → **Project Settings** (gear) → **API**. Copy:
-   - **Project URL**
-   - **anon public** key
-4. Same page area → **Database** → **Connection string** → pick **Transaction** mode (it ends in `:6543/postgres`). Copy it and replace `[YOUR-PASSWORD]` with the password from step 1.
-5. **Authentication → URL Configuration**: after you deploy (Part 5) come back and set **Site URL** to your Vercel URL and add `https://<your-vercel-url>/auth/callback` under **Redirect URLs**. For now, leave defaults.
-
-Optional — Google login: **Authentication → Providers → Google**, follow Supabase's instructions to create a Google OAuth client. You can skip this; email/password works without it.
-
----
-
-## Part 4 — Run it on your laptop
-
-```
-cp .env.example .env.local
-nano .env.local
-```
-
-Paste in the four values (URL, anon key, connection string, your own email as `ADMIN_EMAIL`). In nano: **Ctrl+O, Enter** to save, **Ctrl+X** to exit.
-
-Create the tables, then start the app:
-
-```
-npm run db:push
-npm run dev
-```
-
-Open http://localhost:3000. **Sign up** with the email you put in `ADMIN_EMAIL` — that account becomes admin automatically. (If Supabase emails you a confirmation link, click it.)
-
-Then in a second terminal tab, add the sample course:
-
-```
-cd ~/learnhub
-npm run db:seed
-```
-
-Refresh the site: you'll see "Getting Started with LearnHub". Click **Teach** in the top bar to edit it or create your own.
-
-Stop the dev server with **Ctrl+C**.
-
----
-
-## Part 5 — Put it on the internet (Vercel, ~5 min)
-
-```
-vercel link
-```
-
-Answer: **Set up and deploy? Y → your account → Link to existing project? N → project name: learnhub → directory: ./ → modify settings? N**
-
-Add the same four environment variables to Vercel:
-
-```
-vercel env add NEXT_PUBLIC_SUPABASE_URL production
-vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY production
-vercel env add DATABASE_URL production
-vercel env add ADMIN_EMAIL production
-```
-
-(Each one prompts you to paste the value.) Then deploy:
-
-```
-vercel --prod
-```
-
-It prints a URL like `https://learnhub-xxxx.vercel.app`. That's your live site.
-
-**Now finish Supabase step 5 above** — set Site URL and the `/auth/callback` redirect to that Vercel URL, otherwise email confirmation and Google login will bounce back to localhost.
-
----
-
-## Part 6 — Auto-deploy on every change
-
-Connect the GitHub repo so you never have to run `vercel --prod` again:
-
-1. https://vercel.com/dashboard → your **learnhub** project → **Settings → Git → Connect Git Repository** → pick the `learnhub` repo.
-2. Done. From now on:
-
-```
-git add -A
-git commit -m "describe what you changed"
-git push
-```
-
-…and Vercel rebuilds the live site in about a minute. Pull requests get their own preview URL.
-
----
-
-## Day-to-day
-
-| I want to… | Do this |
+| Where | What |
 |---|---|
-| Work on the site locally | `cd ~/learnhub && npm run dev` |
-| Ship my changes | `git add -A && git commit -m "..." && git push` |
-| Change the database schema | edit `src/db/schema.ts`, then `npm run db:push` (local) — Vercel uses the same Supabase DB, so it's already live |
-| Make someone an instructor | log in as admin → **Admin** → change their role → Save |
-| Ask Claude to build a feature | `cd ~/learnhub && claude` then describe what you want — `CLAUDE.md` tells it how this project works |
+| `~\.claude\CLAUDE.md` | Your personal rules: plain English, plan before big changes, never handle secrets in chat, never delete things |
+| `~\.claude\settings.json` | Edits are auto-accepted; common safe commands do not ask; destructive commands are blocked |
+| `~\.claude\skills\` | `/start`, `/ship`, `/fix`, `/new-project` |
+| Vercel plugin | Lets Claude read deploys and logs to fix live problems itself |
+| VS Code extension | Claude panel inside VS Code (`lhcode`) |
+| PowerShell shortcuts | `lh` opens Claude in this project, `lhcode` opens it in VS Code |
+
+Source for all of it is the `harness/` folder in this repo. Re-running `setup.ps1` refreshes the skills; it does not overwrite your personal `CLAUDE.md` or `settings.json` if you have edited them.
 
 ## If something breaks
 
-- **"relation does not exist"** → you skipped `npm run db:push`.
-- **Login redirects to localhost on the live site** → Supabase Site URL / Redirect URLs (Part 3 step 5).
-- **Vercel build fails** → run `npm run build` locally, fix what it complains about, push again.
-- **`ECONNREFUSED` / can't connect to database** → check `DATABASE_URL` uses port **6543** and the password has no `[ ]` brackets left in it.
+Type `/fix` in Claude and describe it. Common ones:
+
+- **"relation does not exist"**: the tables were not created. `npm run db:push`.
+- **Login on the live site redirects to localhost**: the Supabase URL Configuration step above.
+- **Can't connect to the database**: `DATABASE_URL` must use port **6543** and must not still contain `[YOUR-PASSWORD]`. If your password has symbols like `@ # / ?`, reset it in Supabase to letters and numbers only.
+- **"running scripts is disabled on this system"**: run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` in PowerShell, then retry.
+- **`claude`, `gh` or `vercel` "is not recognized"**: close PowerShell and open a new one; the install updated your PATH.

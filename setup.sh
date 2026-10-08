@@ -25,6 +25,7 @@ nvm install 22 >/dev/null
 nvm alias default 22 >/dev/null
 echo "node $(node -v), npm $(npm -v)"
 npm ls -g vercel >/dev/null 2>&1 || npm install -g vercel >/dev/null
+command -v claude >/dev/null || curl -fsSL https://claude.ai/install.sh | bash
 
 say "3/7  Git identity"
 if [ -z "$(git config --global user.name)" ]; then
