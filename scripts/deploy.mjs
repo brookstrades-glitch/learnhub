@@ -6,7 +6,7 @@ import { parse } from "dotenv";
 process.chdir(fileURLToPath(new URL("..", import.meta.url)));
 
 const say = (m) => console.log(`\n\x1b[1;36m==> ${m}\x1b[0m`);
-const vercel = (args, opts = {}) => spawnSync("vercel", args, { shell: true, stdio: "inherit", ...opts });
+const vercel = (args, opts = {}) => spawnSync(`vercel ${args.join(" ")}`, { shell: true, stdio: "inherit", ...opts });
 
 if (!existsSync(".env.local")) {
   console.error("Missing .env.local. Run setup first.");
@@ -46,9 +46,15 @@ if (vercel(["git", "connect", "--yes"], { stdio: "ignore" }).status !== 0) {
 }
 
 say("Deploying to production");
-const out = vercel(["--prod", "--yes"], { stdio: ["inherit", "pipe", "inherit"], encoding: "utf8" });
+const out = vercel(["--prod", "--yes"], { stdio: ["inherit", "pipe", "pipe"], encoding: "utf8" });
+process.stderr.write(out.stderr ?? "");
 if (out.status !== 0) process.exit(1);
-const url = out.stdout.trim().split(/\s+/).filter((s) => s.startsWith("https://")).pop() ?? "(see the Vercel dashboard)";
+const log = `${out.stdout}
+${out.stderr}`;
+const url =
+  log.match(/Aliased\s+(https:\/\/\S+)/)?.[1] ??
+  out.stdout.trim().split(/\s+/).filter((s) => s.startsWith("https://")).pop() ??
+  "(see the Vercel dashboard)";
 
 console.log(`
 =====================================================================
